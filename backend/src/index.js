@@ -36,11 +36,30 @@ app.use(
 	cors({
 		origin: (origin, callback) => {
 			// Allow requests with no origin (like mobile apps or curl requests)
-			if (!origin || allowedOrigins.includes(origin)) {
+			if (!origin) {
 				callback(null, true);
-			} else {
-				callback(new Error('Not allowed by CORS'));
+				return;
 			}
+			
+			// Check if origin is in allowed list
+			if (allowedOrigins.includes(origin)) {
+				callback(null, true);
+				return;
+			}
+			
+			// Allow Vercel preview deployments (any .vercel.app domain)
+			if (origin.includes('.vercel.app')) {
+				callback(null, true);
+				return;
+			}
+			
+			// Allow localhost for development
+			if (origin.startsWith('http://localhost:') || origin.startsWith('https://localhost:')) {
+				callback(null, true);
+				return;
+			}
+			
+			callback(new Error('Not allowed by CORS'));
 		},
 		credentials: true,
 	})
